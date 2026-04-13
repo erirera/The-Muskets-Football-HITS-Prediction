@@ -1,0 +1,6 @@
+- `[x]` Create implementation plan
+- `[x]` Install pandas (if required)
+- `[x]` Write data_cleaning.py script
+- `[x]` Execute data_cleaning.py to generate Muskets_data_cleaned.csv
+- `[x]` Verify the cleaned dataset
+- `[x]` Create walkthrough.md
