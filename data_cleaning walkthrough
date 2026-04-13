@@ -1,0 +1,30 @@
+# Data Cleaning Walkthrough
+
+I have successfully executed the data cleaning pipeline on `Muskets_data.csv`. The new, cleaned dataset is now accessible as `Muskets_data_cleaned.csv`.
+
+## Changes Applied
+
+### General Structural Improvements
+- **Renamed** the awkward column `↓OVA` to `OVA` (Overall Rating) for easier querying.
+- **Whitespaces Normalized:** Handled the visual noise present in string columns (notably the quadruple linebreaks such as `\n\n\n\n` found before club names).
+
+### Numeric Coercion & Unit Processing
+- **Height:** Analyzed entries displaying metric (`cm`) and imperial (`feet'inches"`) representations. All rows now feature an integer representing total Height in `cm`.
+- **Weight:** Searched rows for `kg` or `lbs`, stripped the tags, and uniformly converted the column to numeric `kg`.
+- **Financial Attributes:** Target columns included `Value`, `Wage`, and `Release Clause`. 
+  - Cut leading `€` symbols from strings.
+  - Decoded abbreviations (`M` = 1,000,000 | `K` = 1,000) into actual mathematical properties to generate robust `int` fields.
+
+### Extracted Metrics
+- **Contracts Split:** Extracted actionable data from the chaotic `Contract` strings (using Regex patterns where applicable):
+  - Created `Contract Start` column.
+  - Created `Contract End` column.
+  - Created `Contract Status` column (`Active`, `On Loan`, `Free`, or `Unknown`). 
+- **Ratings Cleared:** Purged trailing stars (`★`) from Weak Foot (`W/F`), Skill Moves (`SM`), and International Reputation (`IR`) scores, rendering them as standard integers.
+- **Readings (`Hits`):** Formatted string summaries (`1.6K`) down to exact figures (`1600`).
+
+## Validation
+> [!NOTE]
+> Validations during script run confirm data preservation. The dataset maintained its footprint of **19,021 unique records**, expanded out efficiently to 80 analytical columns representing the distinct breakdown of complex feature structures.
+
+Feel free to explore the `./scratch/data_cleaning.py` logic which executes these steps locally.

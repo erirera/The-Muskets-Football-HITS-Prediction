@@ -1,0 +1,44 @@
+# FIFA 21 Dataset Full Range Cleaning Plan
+
+This plan outlines the specific data standardisation and cleaning steps to be applied to `Muskets_data.csv` to make it ready for analysis. The cleaning will be processed via a robust Python (Pandas) script.
+
+## Goal
+To transform raw string values into strict numeric formats (where applicable), remove visual noise (like newline characters or star rating symbols), and extract more usable features from combined structures such as the `Contract` column.
+
+## Proposed Changes
+
+### 1. Handling Column Names & Line Breaks
+- **Rename Columns:** The overall rating column `↓OVA` contains special characters which makes programmatic selection annoying. We'll rename it to `OVA`.
+- **String Cleaning:** The `Club` column values contain prepended newline and return characters (`\n`). We will strip leading/trailing whitespace across all string columns.
+
+### 2. Physical Attributes
+- **`Height`:** Values appear as `170cm` or `5'9"`. These should be standardized to a numeric representation in centimetres (e.g. `170`).
+- **`Weight`:** Values possess units like `72kg` or `159lbs`. These will be converted to a uniform numeric representation in kilograms.
+
+### 3. Financial & Valuation Attributes
+- **Columns:** `Value`, `Wage`, and `Release Clause`.
+- **Issue:** They contain the Euro symbol (`€`), along with `M` (Millions) and `K` (Thousands) suffixes (e.g., `€103.5M`, `€560K`).
+- **Action:** A parser function will strip the symbol, interpret the `M` and `K` suffixes into numeric zeroes, and convert the entire column to integers/floats.
+
+### 4. Ratings & Game Parameters
+- **Columns:** `W/F` (Weak Foot), `SM` (Skill Moves), `IR` (International Reputation).
+- **Issue:** These 1-5 ratings end with a star symbol (★).
+- **Action:** Strip the star symbol and any whitespace, casting the resulting string to an integer type.
+
+### 5. Contract Info Breakdown
+- **Issue:** The `Contract` column contains formats like `2004 ~ 2021`, `Jun 30, 2021 On Loan`, or `Free`.
+- **Action:** Will break this down into three definitive columns:
+  - `Contract Start` (Year)
+  - `Contract End` (Year)
+  - `Contract Status` (e.g., Active, On Loan, Free).
+
+### 6. Hit Counts
+- **`Hits` column:** Contains string summaries like `1.6K` instead of `1600`.
+- **Action:** Parse this out to raw numeric forms.
+
+> [!CAUTION]
+> **Dependency Required:** The Python environment in `scratch` currently lacks the `pandas` package. The script execution step will first require running `pip install pandas`.
+
+## Verification Plan
+- After execution, an updated dataset `Muskets_data_cleaned.csv` will be generated.
+- A validation script will output `df.info()` to ensure data types (int/float representation for previously string values) are accurately updated, and null-counts remain sound.
