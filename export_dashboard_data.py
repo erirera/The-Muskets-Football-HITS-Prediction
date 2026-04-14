@@ -34,7 +34,10 @@ print("Loading data ...")
 df = pd.read_csv(DATA_PATH, low_memory=False)
 df_hits = df.dropna(subset=["Hits"]).copy()
 
-# Frequency-encode
+# Save original string columns BEFORE frequency encoding (used for display in JSON)
+df_hits_strings = df_hits[["Name", "Nationality", "Best Position", "Positions", "Club"]].copy()
+
+# Frequency-encode (overwrites Nationality & Positions with float values for the model)
 for col in high_cat:
     freq = freq_maps.get(col, {})
     df_hits[col] = df_hits[col].map(freq).fillna(0)
@@ -45,15 +48,15 @@ y_log_pred = model.predict(df_hits)
 y_pred_raw = np.expm1(y_log_pred)
 y_actual   = df_hits["Hits"].values
 
-# ── 1. player_predictions.json (sample 2000 for scatter) ────────────────────
+# ── 1. scatter_data.json (sample 2000 for scatter chart) ────────────────────
 sample_idx = np.random.default_rng(42).choice(len(df_hits), size=min(2000, len(df_hits)), replace=False)
 scatter_data = [
     {
-        "name":      str(df_hits.iloc[i]["Name"]),
+        "name":      str(df_hits_strings.iloc[i]["Name"]),
         "actual":    float(y_actual[i]),
         "predicted": round(float(y_pred_raw[i]), 1),
         "ova":       int(df_hits.iloc[i].get("OVA", 0) or 0),
-        "position":  str(df_hits.iloc[i].get("Best Position", "?")),
+        "position":  str(df_hits_strings.iloc[i]["Best Position"]),
     }
     for i in sample_idx
 ]
@@ -65,13 +68,13 @@ print(f"  scatter_data.json -> {len(scatter_data)} players")
 top_idx  = np.argsort(y_actual)[::-1][:50]
 top_data = [
     {
-        "rank":      int(r + 1),
-        "name":      str(df_hits.iloc[i]["Name"]),
-        "actual":    int(y_actual[i]),
-        "predicted": round(float(y_pred_raw[i]), 1),
-        "ova":       int(df_hits.iloc[i].get("OVA", 0) or 0),
-        "position":  str(df_hits.iloc[i].get("Best Position", "?")),
-        "nationality": str(df_hits.iloc[i].get("Nationality", "?")),
+        "rank":        int(r + 1),
+        "name":        str(df_hits_strings.iloc[i]["Name"]),
+        "actual":      int(y_actual[i]),
+        "predicted":   round(float(y_pred_raw[i]), 1),
+        "ova":         int(df_hits.iloc[i].get("OVA", 0) or 0),
+        "position":    str(df_hits_strings.iloc[i]["Best Position"]),
+        "nationality": str(df_hits_strings.iloc[i]["Nationality"]),  # original string, not encoded float
     }
     for r, i in enumerate(top_idx)
 ]
