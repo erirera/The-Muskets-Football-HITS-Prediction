@@ -1,0 +1,10 @@
+# Hits Prediction Model — Task List
+
+- `[x]` Inspect cleaned CSV (columns, dtypes, null counts, Hits distribution)
+- `[x]` Create implementation plan
+- `[x]` Create `prediction_model/` directory & write `hits_prediction.py`
+- `[x]` Write `predict.py` inference script
+- `[x]` Install missing libraries (scikit-learn, xgboost, lightgbm, matplotlib, seaborn)
+- `[x]` Run `hits_prediction.py` end-to-end
+- `[x]` Verify outputs: metrics JSON, charts, `hits_model.pkl`
+- `[x]` Create walkthrough.md

@@ -1,0 +1,78 @@
+# Hits Prediction Model — The Muskets Football
+
+## Overview
+
+Build a machine-learning regression pipeline to predict the **`Hits`** column (how many times a player's page was viewed/searched) from the cleaned dataset `Muskets_data_cleaned.csv` (19 021 rows × 80 columns).
+
+Because `Hits` is highly right-skewed (median = 5, max = 8 400), we will model **log1p(Hits)** and back-transform predictions.
+
+---
+
+## Dataset Summary
+
+| Item | Value |
+|---|---|
+| Rows | 19 021 |
+| Target (`Hits`) non-null | 16 426 (2 595 missing → dropped from training) |
+| Target range | 1 – 8 400 (heavily skewed) |
+| Numeric predictors | ~62 columns |
+| Categorical predictors | `Nationality`, `Preferred Foot`, `A/W`, `D/W`, `Contract Status`, `Best Position`, `Positions` |
+
+---
+
+## Proposed Changes
+
+### 1. Feature Engineering & Preprocessing
+
+Drop: `ID`, `Name`, `LongName`, `photoUrl`, `playerUrl`, `Contract`, `Joined`, `Loan Date End` (leakage / identifiers / high-cardinality free text).
+
+**Numeric features** (impute median):
+All skill ratings, physical attributes, financial values, stats totals, `W/F`, `SM`, `IR`, `PAC`, `SHO`, `PAS`, `DRI`, `DEF`, `PHY`, `Age`, `Height`, `Weight`, `Value`, `Wage`, `Release Clause`, `Contract Start`, `Contract End`.
+
+**Categorical features** (OrdinalEncoder / one-hot):
+`Preferred Foot`, `A/W`, `D/W`, `Contract Status`, `Best Position`, `Nationality` (frequency encoded).
+
+**Target transform**: `log1p(Hits)` → predict → `expm1()` to recover raw hits.
+
+---
+
+### 2. Models
+
+| Model | Rationale |
+|---|---|
+| **Random Forest** | Robust baseline, handles mixed types, gives feature importance |
+| **Gradient Boosting (XGBoost / LightGBM)** | Best tabular regression performance |
+| **Linear Regression (Ridge)** | Interpretable baseline comparison |
+
+Cross-validation: **5-fold KFold** on training set.
+
+---
+
+### 3. Output Files
+
+| File | Purpose |
+|---|---|
+| `prediction_model/hits_prediction.py` | Main training + evaluation script |
+| `prediction_model/predict.py` | Inference script for new data |
+| `prediction_model/model_results.json` | Saved metrics (CV RMSE, R², MAE) |
+| `prediction_model/feature_importance.png` | Top-20 feature importance chart |
+| `prediction_model/predictions_vs_actual.png` | Scatter plot of predicted vs actual |
+| `prediction_model/hits_distribution.png` | Distribution of raw vs log-transformed Hits |
+
+The best model will be serialised to `hits_model.pkl` inside `prediction_model/`.
+
+---
+
+## Verification Plan
+
+1. Run `hits_prediction.py` end-to-end and confirm no errors.
+2. Check CV RMSE and R² scores printed to console.
+3. Visual inspection of prediction scatter plots and feature importance chart.
+4. Run `predict.py` on a sample row to confirm end-to-end inference works.
+
+---
+
+## Open Questions
+
+> [!NOTE]
+> No breaking changes — this is a net-new model directory; the cleaned CSV is untouched.

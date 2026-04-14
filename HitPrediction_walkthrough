@@ -1,0 +1,120 @@
+# Hits Prediction Model — Walkthrough
+
+## What Was Built
+
+A full machine-learning regression pipeline that predicts the **number of Hits** (page views) for
+each player in the Muskets Football dataset, using the cleaned `Muskets_data_cleaned.csv`.
+
+---
+
+## Files Created
+
+| File | Purpose |
+|---|---|
+| `prediction_model/hits_prediction.py` | Training pipeline (run once to train & save) |
+| `prediction_model/predict.py` | Inference script for new/existing players |
+| `prediction_model/hits_model.pkl` | Saved best model (XGBoost, 2.1 MB) |
+| `prediction_model/freq_maps.json` | Frequency encoding maps for Nationality & Positions |
+| `prediction_model/model_results.json` | Full CV + test metrics for all 4 models |
+| `prediction_model/hits_distribution.png` | Raw vs log-transformed Hits distribution |
+| `prediction_model/cv_rmse_comparison.png` | 5-Fold CV RMSE bar chart |
+| `prediction_model/predictions_vs_actual.png` | Predicted vs Actual scatter (log + raw space) |
+| `prediction_model/feature_importance.png` | Top-20 XGBoost feature importances |
+
+---
+
+## Pipeline Design
+
+```
+Muskets_data_cleaned.csv
+        |
+        v
+  Drop identifier cols (ID, Name, URLs, Contract text …)
+        |
+        v
+  Target: log1p(Hits)          <- handles extreme right-skew
+        |
+        v
+  Train / Test split  80/20    <- stratified on Hits quantiles
+        |
+   +----+----+
+   |         |
+ Numeric   Categorical
+ (61 cols)  OHE: Foot, A/W, D/W, Contract Status, Best Position
+ Median     Freq-enc: Nationality, Positions
+ impute +
+ StandardScale
+        |
+        v
+   4 Models trained + 5-Fold CV
+   Ridge | Random Forest | XGBoost | LightGBM
+        |
+        v
+   Best model saved -> hits_model.pkl
+```
+
+---
+
+## Model Performance
+
+| Model | CV RMSE | Test RMSE | Test R² | MAE (raw hits) |
+|---|---|---|---|---|
+| Ridge | 0.6985 | 0.7063 | 0.674 | 16.9 |
+| Random Forest | 0.5668 | 0.5692 | 0.788 | 11.6 |
+| **XGBoost ★** | **0.5372** | **0.5360** | **0.812** | **11.1** |
+| LightGBM | 0.5360 | 0.5366 | 0.812 | 11.2 |
+
+> [!NOTE]
+> RMSE and MAE are in log1p(Hits) space unless marked "raw hits".
+> R² of **0.812** means the model explains ~81% of variance in player Hits.
+> The average prediction error on raw Hits is **±11 hits** per player.
+
+---
+
+## Visualisations
+
+### Hits Distribution (Raw vs Log-Transformed)
+![Hits distribution — raw is extremely skewed; log1p normalises it](C:\Users\delef\.gemini\antigravity\brain\2e51d479-87b4-4336-8978-20bc4676def1\hits_distribution.png)
+
+### 5-Fold CV RMSE — Model Comparison
+![CV RMSE comparison across Ridge, Random Forest, XGBoost, LightGBM](C:\Users\delef\.gemini\antigravity\brain\2e51d479-87b4-4336-8978-20bc4676def1\cv_rmse_comparison.png)
+
+### Predicted vs Actual Hits (XGBoost)
+![Predicted vs actual in log space (left) and raw hits < 500 (right)](C:\Users\delef\.gemini\antigravity\brain\2e51d479-87b4-4336-8978-20bc4676def1\predictions_vs_actual.png)
+
+### Top-20 Feature Importances (XGBoost)
+![Top-20 most predictive features for player Hits](C:\Users\delef\.gemini\antigravity\brain\2e51d479-87b4-4336-8978-20bc4676def1\feature_importance.png)
+
+---
+
+## Sample Predictions (Demo)
+
+| Player | Actual Hits | Predicted |
+|---|---|---|
+| L. Messi | 771 | 626 ✓ |
+| Cristiano Ronaldo | 562 | 543 ✓ |
+| K. Mbappé | 1600 | 1408 ✓ |
+| K. De Bruyne | 207 | 239 ✓ |
+| N. Kanté | 202 | 181 ✓ |
+| J. Oblak | 150 | 133 ✓ |
+
+---
+
+## How to Run
+
+```powershell
+# Re-train (only needed if data changes):
+python -X utf8 prediction_model/hits_prediction.py
+
+# Demo — predict first 20 players from cleaned CSV:
+python -X utf8 prediction_model/predict.py --demo
+
+# Batch predict from a new CSV:
+python -X utf8 prediction_model/predict.py --csv new_players.csv --out results.csv
+
+# Single player (JSON):
+python -X utf8 prediction_model/predict.py --player "{\"Age\": 25, \"OVA\": 82}"
+```
+
+All commands should be run from:
+`The-Muskets-Football-HITS-Prediction/`
