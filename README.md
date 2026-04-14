@@ -213,4 +213,4 @@ The dashboard (`dashboard/index.html`) provides 6 interactive views:
 
 ---
 
-*Project by The Muskets FC Analytics · Built with Python & scikit-learn ecosystem*
+*Project by Dele Falebita · Built with Python & scikit-learn ecosystem in Antigravity AI*
